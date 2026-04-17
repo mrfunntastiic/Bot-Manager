@@ -72,6 +72,11 @@ router.get("/bot/logs", async (req, res): Promise<void> => {
   }));
 });
 
+router.delete("/bot/logs", async (_req, res): Promise<void> => {
+  const deleted = await db.delete(botLogsTable).returning();
+  res.json({ success: true, deleted: deleted.length, message: `${deleted.length} log(s) cleared` });
+});
+
 router.post("/bot/proxies", async (req, res): Promise<void> => {
   const parsed = UploadProxiesBody.safeParse(req.body);
   if (!parsed.success) {

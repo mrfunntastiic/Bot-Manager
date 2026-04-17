@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Play, Square, Activity, Upload, CheckCircle2, XCircle, Clock, AlertTriangle, FileText, Wallet, Terminal } from "lucide-react";
+import { Play, Square, Activity, Upload, CheckCircle2, XCircle, Clock, AlertTriangle, FileText, Wallet, Terminal, Trash2 } from "lucide-react";
 import { 
   useRunBot, 
   useStopBot, 
@@ -11,8 +11,10 @@ import {
   useGetBotLogs,
   getGetBotLogsQueryKey,
   useGetWalletStats,
-  useUploadProxies
+  useUploadProxies,
+  useClearBotLogs,
 } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,6 +35,7 @@ type RunBotFormValues = z.infer<typeof runBotSchema>;
 
 export default function Dashboard() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   // Queries
   const { data: status } = useGetBotStatus({ 
@@ -58,6 +61,17 @@ export default function Dashboard() {
   const runBotMutation = useRunBot();
   const stopBotMutation = useStopBot();
   const uploadProxiesMutation = useUploadProxies();
+  const clearLogsMutation = useClearBotLogs();
+
+  const handleClearLogs = () => {
+    clearLogsMutation.mutate(undefined, {
+      onSuccess: (result) => {
+        queryClient.invalidateQueries({ queryKey: getGetBotLogsQueryKey() });
+        toast({ title: "Logs cleared", description: result.message, duration: 2000 });
+      },
+      onError: () => toast({ title: "Failed to clear logs", variant: "destructive" }),
+    });
+  };
   
   // Local state
   const logsEndRef = useRef<HTMLDivElement>(null);
@@ -316,6 +330,17 @@ export default function Dashboard() {
                 <FileText className="w-4 h-4 mr-2" />
                 SYSTEM_LOGS
               </CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 font-mono text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                onClick={handleClearLogs}
+                disabled={clearLogsMutation.isPending || !logsData?.logs.length}
+                title="Clear all logs"
+              >
+                <Trash2 className="w-3 h-3 mr-1.5" />
+                CLEAR
+              </Button>
             </CardHeader>
             <CardContent className="flex-1 p-0 overflow-hidden relative">
               <div className="absolute inset-0 overflow-y-auto p-4 font-mono text-xs space-y-1 scroll-smooth">

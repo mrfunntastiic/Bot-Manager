@@ -54,6 +54,12 @@ export interface LogsResponse {
   total: number;
 }
 
+export interface ClearLogsResult {
+  success: boolean;
+  deleted: number;
+  message: string;
+}
+
 export interface ProxyUploadRequest {
   proxies: string[];
 }

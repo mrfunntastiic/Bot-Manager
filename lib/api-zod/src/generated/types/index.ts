@@ -9,6 +9,7 @@
 export * from "./botRunRequest";
 export * from "./botRunResponse";
 export * from "./botStatus";
+export * from "./clearLogsResult";
 export * from "./errorResponse";
 export * from "./getBotLogsParams";
 export * from "./getWalletsParams";

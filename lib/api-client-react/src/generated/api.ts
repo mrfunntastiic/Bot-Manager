@@ -20,6 +20,7 @@ import type {
   BotRunRequest,
   BotRunResponse,
   BotStatus,
+  ClearLogsResult,
   ErrorResponse,
   GetBotLogsParams,
   GetWalletsParams,
@@ -455,6 +456,87 @@ export function useGetBotLogs<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Clear all bot logs
+ */
+export const getClearBotLogsUrl = () => {
+  return `/api/bot/logs`;
+};
+
+export const clearBotLogs = async (
+  options?: RequestInit,
+): Promise<ClearLogsResult> => {
+  return customFetch<ClearLogsResult>(getClearBotLogsUrl(), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getClearBotLogsMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof clearBotLogs>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof clearBotLogs>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["clearBotLogs"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof clearBotLogs>>,
+    void
+  > = () => {
+    return clearBotLogs(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ClearBotLogsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof clearBotLogs>>
+>;
+
+export type ClearBotLogsMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Clear all bot logs
+ */
+export const useClearBotLogs = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof clearBotLogs>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof clearBotLogs>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getClearBotLogsMutationOptions(options));
+};
 
 /**
  * @summary Upload proxy list

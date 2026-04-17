@@ -104,6 +104,17 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/LogsResponse"
+    delete:
+      operationId: clearBotLogs
+      tags: [bot]
+      summary: Clear all bot logs
+      responses:
+        "200":
+          description: Logs cleared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClearLogsResult"
 
   /bot/proxies:
     post:
@@ -364,6 +375,20 @@ components:
       required:
         - logs
         - total
+
+    ClearLogsResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        deleted:
+          type: integer
+        message:
+          type: string
+      required:
+        - success
+        - deleted
+        - message
 
     ProxyUploadRequest:
       type: object

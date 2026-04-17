@@ -83,6 +83,15 @@ export const GetBotLogsResponse = zod.object({
 });
 
 /**
+ * @summary Clear all bot logs
+ */
+export const ClearBotLogsResponse = zod.object({
+  success: zod.boolean(),
+  deleted: zod.number(),
+  message: zod.string(),
+});
+
+/**
  * @summary Upload proxy list
  */
 export const UploadProxiesBody = zod.object({
