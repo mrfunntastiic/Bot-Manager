@@ -144,8 +144,7 @@ log "Dependencies terinstall"
 info "Buat tabel di database (drizzle push)..."
 cd "$INSTALL_DIR"
 export DATABASE_URL="$DATABASE_URL"
-pnpm --filter @workspace/db run push --accept-data-loss 2>/dev/null || \
-pnpm --filter @workspace/db run push-force 2>/dev/null || \
+pnpm --filter @workspace/db run push-force || \
 warn "Schema push gagal, lanjut tanpa error"
 log "Schema database selesai"
 
