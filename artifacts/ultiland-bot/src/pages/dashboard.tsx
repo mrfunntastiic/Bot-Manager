@@ -335,7 +335,7 @@ export default function Dashboard() {
                 size="sm"
                 className="h-7 px-2 font-mono text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                 onClick={handleClearLogs}
-                disabled={clearLogsMutation.isPending || !logsData?.logs.length}
+                disabled={clearLogsMutation.isPending || !logsData?.logs?.length}
                 title="Clear all logs"
               >
                 <Trash2 className="w-3 h-3 mr-1.5" />
