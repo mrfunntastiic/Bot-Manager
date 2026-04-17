@@ -4,6 +4,14 @@
 
 pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
 
+## Artifacts
+
+### Ultiland Bot Dashboard (`artifacts/ultiland-bot`)
+- React + Vite web dashboard for managing the Ultiland auto-referral & daily task bot
+- Dark terminal-style UI with real-time log feed and wallet management
+- Pages: Control Panel (bot run/stop, live status, logs), Wallets (table, export)
+- Backend: Express API at `/api` handles bot execution, wallet storage, proxy management
+
 ## Stack
 
 - **Monorepo tool**: pnpm workspaces

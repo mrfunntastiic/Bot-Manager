@@ -8,3 +8,97 @@
 export interface HealthStatus {
   status: string;
 }
+
+export interface BotRunRequest {
+  referralCode: string;
+  /** @minimum 1 */
+  accountCount: number;
+  useProxy: boolean;
+}
+
+export interface BotRunResponse {
+  success: boolean;
+  message: string;
+  runId?: string;
+}
+
+export interface BotStatus {
+  running: boolean;
+  currentAccount: number;
+  totalAccounts: number;
+  successCount: number;
+  failCount: number;
+  runId?: string;
+  startedAt?: string;
+}
+
+export type LogEntryLevel = (typeof LogEntryLevel)[keyof typeof LogEntryLevel];
+
+export const LogEntryLevel = {
+  info: "info",
+  success: "success",
+  error: "error",
+  warning: "warning",
+} as const;
+
+export interface LogEntry {
+  id: number;
+  timestamp: string;
+  level: LogEntryLevel;
+  message: string;
+  runId?: string;
+}
+
+export interface LogsResponse {
+  logs: LogEntry[];
+  total: number;
+}
+
+export interface ProxyUploadRequest {
+  proxies: string[];
+}
+
+export interface ProxyUploadResponse {
+  success: boolean;
+  count: number;
+  message: string;
+}
+
+export interface Wallet {
+  id: number;
+  address: string;
+  privateKey: string;
+  mnemonic: string;
+  referralCode: string;
+  checkedIn: boolean;
+  taskSubmitted: boolean;
+  createdAt: string;
+  runId?: string;
+}
+
+export interface WalletsResponse {
+  wallets: Wallet[];
+  total: number;
+}
+
+export interface WalletStats {
+  total: number;
+  checkedIn: number;
+  taskSubmitted: number;
+  totalRuns: number;
+  lastRunAt?: string;
+}
+
+export interface ErrorResponse {
+  error: string;
+}
+
+export type GetBotLogsParams = {
+  limit?: number;
+  offset?: number;
+};
+
+export type GetWalletsParams = {
+  limit?: number;
+  offset?: number;
+};

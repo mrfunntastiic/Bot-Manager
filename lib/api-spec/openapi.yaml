@@ -10,6 +10,10 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: bot
+    description: Bot operations
+  - name: wallets
+    description: Wallet management
 paths:
   /healthz:
     get:
@@ -24,6 +28,152 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /bot/run:
+    post:
+      operationId: runBot
+      tags: [bot]
+      summary: Start bot run
+      description: Start a new bot run with given config
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BotRunRequest"
+      responses:
+        "200":
+          description: Bot run started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotRunResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /bot/status:
+    get:
+      operationId: getBotStatus
+      tags: [bot]
+      summary: Get current bot status
+      responses:
+        "200":
+          description: Bot status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotStatus"
+
+  /bot/stop:
+    post:
+      operationId: stopBot
+      tags: [bot]
+      summary: Stop running bot
+      responses:
+        "200":
+          description: Bot stopped
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotStatus"
+
+  /bot/logs:
+    get:
+      operationId: getBotLogs
+      tags: [bot]
+      summary: Get bot run logs
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: Log entries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogsResponse"
+
+  /bot/proxies:
+    post:
+      operationId: uploadProxies
+      tags: [bot]
+      summary: Upload proxy list
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProxyUploadRequest"
+      responses:
+        "200":
+          description: Proxies saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProxyUploadResponse"
+
+  /wallets:
+    get:
+      operationId: getWallets
+      tags: [wallets]
+      summary: Get all generated wallets
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: Wallet list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WalletsResponse"
+
+  /wallets/stats:
+    get:
+      operationId: getWalletStats
+      tags: [wallets]
+      summary: Get wallet statistics
+      responses:
+        "200":
+          description: Wallet stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WalletStats"
+
+  /wallets/export:
+    get:
+      operationId: exportWallets
+      tags: [wallets]
+      summary: Export wallets as text
+      responses:
+        "200":
+          description: Wallets as plain text
+          content:
+            text/plain:
+              schema:
+                type: string
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +184,182 @@ components:
       required:
         - status
 
+    BotRunRequest:
+      type: object
+      properties:
+        referralCode:
+          type: string
+        accountCount:
+          type: integer
+          minimum: 1
+        useProxy:
+          type: boolean
+      required:
+        - referralCode
+        - accountCount
+        - useProxy
+
+    BotRunResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        runId:
+          type: string
+      required:
+        - success
+        - message
+
+    BotStatus:
+      type: object
+      properties:
+        running:
+          type: boolean
+        currentAccount:
+          type: integer
+        totalAccounts:
+          type: integer
+        successCount:
+          type: integer
+        failCount:
+          type: integer
+        runId:
+          type: string
+        startedAt:
+          type: string
+      required:
+        - running
+        - currentAccount
+        - totalAccounts
+        - successCount
+        - failCount
+
+    LogEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        timestamp:
+          type: string
+        level:
+          type: string
+          enum: [info, success, error, warning]
+        message:
+          type: string
+        runId:
+          type: string
+      required:
+        - id
+        - timestamp
+        - level
+        - message
+
+    LogsResponse:
+      type: object
+      properties:
+        logs:
+          type: array
+          items:
+            $ref: "#/components/schemas/LogEntry"
+        total:
+          type: integer
+      required:
+        - logs
+        - total
+
+    ProxyUploadRequest:
+      type: object
+      properties:
+        proxies:
+          type: array
+          items:
+            type: string
+      required:
+        - proxies
+
+    ProxyUploadResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        count:
+          type: integer
+        message:
+          type: string
+      required:
+        - success
+        - count
+        - message
+
+    Wallet:
+      type: object
+      properties:
+        id:
+          type: integer
+        address:
+          type: string
+        privateKey:
+          type: string
+        mnemonic:
+          type: string
+        referralCode:
+          type: string
+        checkedIn:
+          type: boolean
+        taskSubmitted:
+          type: boolean
+        createdAt:
+          type: string
+        runId:
+          type: string
+      required:
+        - id
+        - address
+        - privateKey
+        - mnemonic
+        - referralCode
+        - checkedIn
+        - taskSubmitted
+        - createdAt
+
+    WalletsResponse:
+      type: object
+      properties:
+        wallets:
+          type: array
+          items:
+            $ref: "#/components/schemas/Wallet"
+        total:
+          type: integer
+      required:
+        - wallets
+        - total
+
+    WalletStats:
+      type: object
+      properties:
+        total:
+          type: integer
+        checkedIn:
+          type: integer
+        taskSubmitted:
+          type: integer
+        totalRuns:
+          type: integer
+        lastRunAt:
+          type: string
+      required:
+        - total
+        - checkedIn
+        - taskSubmitted
+        - totalRuns
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error

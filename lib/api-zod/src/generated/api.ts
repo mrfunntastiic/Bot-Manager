@@ -14,3 +14,122 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * Start a new bot run with given config
+ * @summary Start bot run
+ */
+
+export const RunBotBody = zod.object({
+  referralCode: zod.string(),
+  accountCount: zod.number().min(1),
+  useProxy: zod.boolean(),
+});
+
+export const RunBotResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string(),
+  runId: zod.string().optional(),
+});
+
+/**
+ * @summary Get current bot status
+ */
+export const GetBotStatusResponse = zod.object({
+  running: zod.boolean(),
+  currentAccount: zod.number(),
+  totalAccounts: zod.number(),
+  successCount: zod.number(),
+  failCount: zod.number(),
+  runId: zod.string().optional(),
+  startedAt: zod.string().optional(),
+});
+
+/**
+ * @summary Stop running bot
+ */
+export const StopBotResponse = zod.object({
+  running: zod.boolean(),
+  currentAccount: zod.number(),
+  totalAccounts: zod.number(),
+  successCount: zod.number(),
+  failCount: zod.number(),
+  runId: zod.string().optional(),
+  startedAt: zod.string().optional(),
+});
+
+/**
+ * @summary Get bot run logs
+ */
+export const getBotLogsQueryLimitDefault = 100;
+export const getBotLogsQueryOffsetDefault = 0;
+
+export const GetBotLogsQueryParams = zod.object({
+  limit: zod.coerce.number().default(getBotLogsQueryLimitDefault),
+  offset: zod.coerce.number().default(getBotLogsQueryOffsetDefault),
+});
+
+export const GetBotLogsResponse = zod.object({
+  logs: zod.array(
+    zod.object({
+      id: zod.number(),
+      timestamp: zod.string(),
+      level: zod.enum(["info", "success", "error", "warning"]),
+      message: zod.string(),
+      runId: zod.string().optional(),
+    }),
+  ),
+  total: zod.number(),
+});
+
+/**
+ * @summary Upload proxy list
+ */
+export const UploadProxiesBody = zod.object({
+  proxies: zod.array(zod.string()),
+});
+
+export const UploadProxiesResponse = zod.object({
+  success: zod.boolean(),
+  count: zod.number(),
+  message: zod.string(),
+});
+
+/**
+ * @summary Get all generated wallets
+ */
+export const getWalletsQueryLimitDefault = 50;
+export const getWalletsQueryOffsetDefault = 0;
+
+export const GetWalletsQueryParams = zod.object({
+  limit: zod.coerce.number().default(getWalletsQueryLimitDefault),
+  offset: zod.coerce.number().default(getWalletsQueryOffsetDefault),
+});
+
+export const GetWalletsResponse = zod.object({
+  wallets: zod.array(
+    zod.object({
+      id: zod.number(),
+      address: zod.string(),
+      privateKey: zod.string(),
+      mnemonic: zod.string(),
+      referralCode: zod.string(),
+      checkedIn: zod.boolean(),
+      taskSubmitted: zod.boolean(),
+      createdAt: zod.string(),
+      runId: zod.string().optional(),
+    }),
+  ),
+  total: zod.number(),
+});
+
+/**
+ * @summary Get wallet statistics
+ */
+export const GetWalletStatsResponse = zod.object({
+  total: zod.number(),
+  checkedIn: zod.number(),
+  taskSubmitted: zod.number(),
+  totalRuns: zod.number(),
+  lastRunAt: zod.string().optional(),
+});

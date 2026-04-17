@@ -5,18 +5,34 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { HealthStatus } from "./api.schemas";
+import type {
+  BotRunRequest,
+  BotRunResponse,
+  BotStatus,
+  ErrorResponse,
+  GetBotLogsParams,
+  GetWalletsParams,
+  HealthStatus,
+  LogsResponse,
+  ProxyUploadRequest,
+  ProxyUploadResponse,
+  WalletStats,
+  WalletsResponse,
+} from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
-import type { ErrorType } from "../custom-fetch";
+import type { ErrorType, BodyType } from "../custom-fetch";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -92,6 +108,669 @@ export function useHealthCheck<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getHealthCheckQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * Start a new bot run with given config
+ * @summary Start bot run
+ */
+export const getRunBotUrl = () => {
+  return `/api/bot/run`;
+};
+
+export const runBot = async (
+  botRunRequest: BotRunRequest,
+  options?: RequestInit,
+): Promise<BotRunResponse> => {
+  return customFetch<BotRunResponse>(getRunBotUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(botRunRequest),
+  });
+};
+
+export const getRunBotMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof runBot>>,
+    TError,
+    { data: BodyType<BotRunRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof runBot>>,
+  TError,
+  { data: BodyType<BotRunRequest> },
+  TContext
+> => {
+  const mutationKey = ["runBot"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof runBot>>,
+    { data: BodyType<BotRunRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return runBot(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RunBotMutationResult = NonNullable<
+  Awaited<ReturnType<typeof runBot>>
+>;
+export type RunBotMutationBody = BodyType<BotRunRequest>;
+export type RunBotMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Start bot run
+ */
+export const useRunBot = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof runBot>>,
+    TError,
+    { data: BodyType<BotRunRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof runBot>>,
+  TError,
+  { data: BodyType<BotRunRequest> },
+  TContext
+> => {
+  return useMutation(getRunBotMutationOptions(options));
+};
+
+/**
+ * @summary Get current bot status
+ */
+export const getGetBotStatusUrl = () => {
+  return `/api/bot/status`;
+};
+
+export const getBotStatus = async (
+  options?: RequestInit,
+): Promise<BotStatus> => {
+  return customFetch<BotStatus>(getGetBotStatusUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetBotStatusQueryKey = () => {
+  return [`/api/bot/status`] as const;
+};
+
+export const getGetBotStatusQueryOptions = <
+  TData = Awaited<ReturnType<typeof getBotStatus>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getBotStatus>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetBotStatusQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getBotStatus>>> = ({
+    signal,
+  }) => getBotStatus({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getBotStatus>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetBotStatusQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getBotStatus>>
+>;
+export type GetBotStatusQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get current bot status
+ */
+
+export function useGetBotStatus<
+  TData = Awaited<ReturnType<typeof getBotStatus>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getBotStatus>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetBotStatusQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Stop running bot
+ */
+export const getStopBotUrl = () => {
+  return `/api/bot/stop`;
+};
+
+export const stopBot = async (options?: RequestInit): Promise<BotStatus> => {
+  return customFetch<BotStatus>(getStopBotUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getStopBotMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof stopBot>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof stopBot>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["stopBot"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof stopBot>>,
+    void
+  > = () => {
+    return stopBot(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type StopBotMutationResult = NonNullable<
+  Awaited<ReturnType<typeof stopBot>>
+>;
+
+export type StopBotMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Stop running bot
+ */
+export const useStopBot = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof stopBot>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof stopBot>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getStopBotMutationOptions(options));
+};
+
+/**
+ * @summary Get bot run logs
+ */
+export const getGetBotLogsUrl = (params?: GetBotLogsParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/bot/logs?${stringifiedParams}`
+    : `/api/bot/logs`;
+};
+
+export const getBotLogs = async (
+  params?: GetBotLogsParams,
+  options?: RequestInit,
+): Promise<LogsResponse> => {
+  return customFetch<LogsResponse>(getGetBotLogsUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetBotLogsQueryKey = (params?: GetBotLogsParams) => {
+  return [`/api/bot/logs`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetBotLogsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getBotLogs>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: GetBotLogsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getBotLogs>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetBotLogsQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getBotLogs>>> = ({
+    signal,
+  }) => getBotLogs(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getBotLogs>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetBotLogsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getBotLogs>>
+>;
+export type GetBotLogsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get bot run logs
+ */
+
+export function useGetBotLogs<
+  TData = Awaited<ReturnType<typeof getBotLogs>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: GetBotLogsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getBotLogs>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetBotLogsQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Upload proxy list
+ */
+export const getUploadProxiesUrl = () => {
+  return `/api/bot/proxies`;
+};
+
+export const uploadProxies = async (
+  proxyUploadRequest: ProxyUploadRequest,
+  options?: RequestInit,
+): Promise<ProxyUploadResponse> => {
+  return customFetch<ProxyUploadResponse>(getUploadProxiesUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(proxyUploadRequest),
+  });
+};
+
+export const getUploadProxiesMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof uploadProxies>>,
+    TError,
+    { data: BodyType<ProxyUploadRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof uploadProxies>>,
+  TError,
+  { data: BodyType<ProxyUploadRequest> },
+  TContext
+> => {
+  const mutationKey = ["uploadProxies"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof uploadProxies>>,
+    { data: BodyType<ProxyUploadRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return uploadProxies(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UploadProxiesMutationResult = NonNullable<
+  Awaited<ReturnType<typeof uploadProxies>>
+>;
+export type UploadProxiesMutationBody = BodyType<ProxyUploadRequest>;
+export type UploadProxiesMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Upload proxy list
+ */
+export const useUploadProxies = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof uploadProxies>>,
+    TError,
+    { data: BodyType<ProxyUploadRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof uploadProxies>>,
+  TError,
+  { data: BodyType<ProxyUploadRequest> },
+  TContext
+> => {
+  return useMutation(getUploadProxiesMutationOptions(options));
+};
+
+/**
+ * @summary Get all generated wallets
+ */
+export const getGetWalletsUrl = (params?: GetWalletsParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/wallets?${stringifiedParams}`
+    : `/api/wallets`;
+};
+
+export const getWallets = async (
+  params?: GetWalletsParams,
+  options?: RequestInit,
+): Promise<WalletsResponse> => {
+  return customFetch<WalletsResponse>(getGetWalletsUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetWalletsQueryKey = (params?: GetWalletsParams) => {
+  return [`/api/wallets`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetWalletsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getWallets>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: GetWalletsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getWallets>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetWalletsQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getWallets>>> = ({
+    signal,
+  }) => getWallets(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getWallets>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetWalletsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getWallets>>
+>;
+export type GetWalletsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get all generated wallets
+ */
+
+export function useGetWallets<
+  TData = Awaited<ReturnType<typeof getWallets>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: GetWalletsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getWallets>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetWalletsQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get wallet statistics
+ */
+export const getGetWalletStatsUrl = () => {
+  return `/api/wallets/stats`;
+};
+
+export const getWalletStats = async (
+  options?: RequestInit,
+): Promise<WalletStats> => {
+  return customFetch<WalletStats>(getGetWalletStatsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetWalletStatsQueryKey = () => {
+  return [`/api/wallets/stats`] as const;
+};
+
+export const getGetWalletStatsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getWalletStats>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getWalletStats>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetWalletStatsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getWalletStats>>> = ({
+    signal,
+  }) => getWalletStats({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getWalletStats>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetWalletStatsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getWalletStats>>
+>;
+export type GetWalletStatsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get wallet statistics
+ */
+
+export function useGetWalletStats<
+  TData = Awaited<ReturnType<typeof getWalletStats>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getWalletStats>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetWalletStatsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Export wallets as text
+ */
+export const getExportWalletsUrl = () => {
+  return `/api/wallets/export`;
+};
+
+export const exportWallets = async (options?: RequestInit): Promise<string> => {
+  return customFetch<string>(getExportWalletsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getExportWalletsQueryKey = () => {
+  return [`/api/wallets/export`] as const;
+};
+
+export const getExportWalletsQueryOptions = <
+  TData = Awaited<ReturnType<typeof exportWallets>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof exportWallets>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getExportWalletsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof exportWallets>>> = ({
+    signal,
+  }) => exportWallets({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof exportWallets>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ExportWalletsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof exportWallets>>
+>;
+export type ExportWalletsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Export wallets as text
+ */
+
+export function useExportWallets<
+  TData = Awaited<ReturnType<typeof exportWallets>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof exportWallets>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getExportWalletsQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

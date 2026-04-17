@@ -6,4 +6,18 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./botRunRequest";
+export * from "./botRunResponse";
+export * from "./botStatus";
+export * from "./errorResponse";
+export * from "./getBotLogsParams";
+export * from "./getWalletsParams";
 export * from "./healthStatus";
+export * from "./logEntry";
+export * from "./logEntryLevel";
+export * from "./logsResponse";
+export * from "./proxyUploadRequest";
+export * from "./proxyUploadResponse";
+export * from "./wallet";
+export * from "./walletsResponse";
+export * from "./walletStats";
