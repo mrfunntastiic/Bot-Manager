@@ -89,6 +89,21 @@ export interface WalletStats {
   lastRunAt?: string;
 }
 
+export interface WalletDeleteResult {
+  success: boolean;
+  message: string;
+}
+
+export interface WalletBulkDeleteRequest {
+  ids: number[];
+}
+
+export interface WalletBulkDeleteResult {
+  success: boolean;
+  deleted: number;
+  message: string;
+}
+
 export interface ErrorResponse {
   error: string;
 }
@@ -99,6 +114,12 @@ export type GetBotLogsParams = {
 };
 
 export type GetWalletsParams = {
+  limit?: number;
+  offset?: number;
+};
+
+export type SearchWalletsParams = {
+  q: string;
   limit?: number;
   offset?: number;
 };

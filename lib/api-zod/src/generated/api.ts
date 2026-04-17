@@ -133,3 +133,76 @@ export const GetWalletStatsResponse = zod.object({
   totalRuns: zod.number(),
   lastRunAt: zod.string().optional(),
 });
+
+/**
+ * @summary Get a single wallet by ID
+ */
+export const GetWalletParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetWalletResponse = zod.object({
+  id: zod.number(),
+  address: zod.string(),
+  privateKey: zod.string(),
+  mnemonic: zod.string(),
+  referralCode: zod.string(),
+  checkedIn: zod.boolean(),
+  taskSubmitted: zod.boolean(),
+  createdAt: zod.string(),
+  runId: zod.string().optional(),
+});
+
+/**
+ * @summary Delete a wallet by ID
+ */
+export const DeleteWalletParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteWalletResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string(),
+});
+
+/**
+ * @summary Search wallets by address
+ */
+export const searchWalletsQueryLimitDefault = 50;
+export const searchWalletsQueryOffsetDefault = 0;
+
+export const SearchWalletsQueryParams = zod.object({
+  q: zod.coerce.string(),
+  limit: zod.coerce.number().default(searchWalletsQueryLimitDefault),
+  offset: zod.coerce.number().default(searchWalletsQueryOffsetDefault),
+});
+
+export const SearchWalletsResponse = zod.object({
+  wallets: zod.array(
+    zod.object({
+      id: zod.number(),
+      address: zod.string(),
+      privateKey: zod.string(),
+      mnemonic: zod.string(),
+      referralCode: zod.string(),
+      checkedIn: zod.boolean(),
+      taskSubmitted: zod.boolean(),
+      createdAt: zod.string(),
+      runId: zod.string().optional(),
+    }),
+  ),
+  total: zod.number(),
+});
+
+/**
+ * @summary Delete multiple wallets by IDs
+ */
+export const BulkDeleteWalletsBody = zod.object({
+  ids: zod.array(zod.number()),
+});
+
+export const BulkDeleteWalletsResponse = zod.object({
+  success: zod.boolean(),
+  deleted: zod.number(),
+  message: zod.string(),
+});

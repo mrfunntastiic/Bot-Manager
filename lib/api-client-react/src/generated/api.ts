@@ -27,6 +27,11 @@ import type {
   LogsResponse,
   ProxyUploadRequest,
   ProxyUploadResponse,
+  SearchWalletsParams,
+  Wallet,
+  WalletBulkDeleteRequest,
+  WalletBulkDeleteResult,
+  WalletDeleteResult,
   WalletStats,
   WalletsResponse,
 } from "./api.schemas";
@@ -778,3 +783,352 @@ export function useExportWallets<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Get a single wallet by ID
+ */
+export const getGetWalletUrl = (id: number) => {
+  return `/api/wallets/${id}`;
+};
+
+export const getWallet = async (
+  id: number,
+  options?: RequestInit,
+): Promise<Wallet> => {
+  return customFetch<Wallet>(getGetWalletUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetWalletQueryKey = (id: number) => {
+  return [`/api/wallets/${id}`] as const;
+};
+
+export const getGetWalletQueryOptions = <
+  TData = Awaited<ReturnType<typeof getWallet>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getWallet>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetWalletQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getWallet>>> = ({
+    signal,
+  }) => getWallet(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getWallet>>, TError, TData> & {
+    queryKey: QueryKey;
+  };
+};
+
+export type GetWalletQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getWallet>>
+>;
+export type GetWalletQueryError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Get a single wallet by ID
+ */
+
+export function useGetWallet<
+  TData = Awaited<ReturnType<typeof getWallet>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getWallet>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetWalletQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Delete a wallet by ID
+ */
+export const getDeleteWalletUrl = (id: number) => {
+  return `/api/wallets/${id}`;
+};
+
+export const deleteWallet = async (
+  id: number,
+  options?: RequestInit,
+): Promise<WalletDeleteResult> => {
+  return customFetch<WalletDeleteResult>(getDeleteWalletUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteWalletMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteWallet>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteWallet>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteWallet"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteWallet>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteWallet(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteWalletMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteWallet>>
+>;
+
+export type DeleteWalletMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Delete a wallet by ID
+ */
+export const useDeleteWallet = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteWallet>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteWallet>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeleteWalletMutationOptions(options));
+};
+
+/**
+ * @summary Search wallets by address
+ */
+export const getSearchWalletsUrl = (params: SearchWalletsParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/wallets/search?${stringifiedParams}`
+    : `/api/wallets/search`;
+};
+
+export const searchWallets = async (
+  params: SearchWalletsParams,
+  options?: RequestInit,
+): Promise<WalletsResponse> => {
+  return customFetch<WalletsResponse>(getSearchWalletsUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getSearchWalletsQueryKey = (params?: SearchWalletsParams) => {
+  return [`/api/wallets/search`, ...(params ? [params] : [])] as const;
+};
+
+export const getSearchWalletsQueryOptions = <
+  TData = Awaited<ReturnType<typeof searchWallets>>,
+  TError = ErrorType<unknown>,
+>(
+  params: SearchWalletsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof searchWallets>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getSearchWalletsQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof searchWallets>>> = ({
+    signal,
+  }) => searchWallets(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof searchWallets>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type SearchWalletsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof searchWallets>>
+>;
+export type SearchWalletsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Search wallets by address
+ */
+
+export function useSearchWallets<
+  TData = Awaited<ReturnType<typeof searchWallets>>,
+  TError = ErrorType<unknown>,
+>(
+  params: SearchWalletsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof searchWallets>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getSearchWalletsQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Delete multiple wallets by IDs
+ */
+export const getBulkDeleteWalletsUrl = () => {
+  return `/api/wallets/bulk-delete`;
+};
+
+export const bulkDeleteWallets = async (
+  walletBulkDeleteRequest: WalletBulkDeleteRequest,
+  options?: RequestInit,
+): Promise<WalletBulkDeleteResult> => {
+  return customFetch<WalletBulkDeleteResult>(getBulkDeleteWalletsUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(walletBulkDeleteRequest),
+  });
+};
+
+export const getBulkDeleteWalletsMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof bulkDeleteWallets>>,
+    TError,
+    { data: BodyType<WalletBulkDeleteRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof bulkDeleteWallets>>,
+  TError,
+  { data: BodyType<WalletBulkDeleteRequest> },
+  TContext
+> => {
+  const mutationKey = ["bulkDeleteWallets"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof bulkDeleteWallets>>,
+    { data: BodyType<WalletBulkDeleteRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return bulkDeleteWallets(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type BulkDeleteWalletsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof bulkDeleteWallets>>
+>;
+export type BulkDeleteWalletsMutationBody = BodyType<WalletBulkDeleteRequest>;
+export type BulkDeleteWalletsMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete multiple wallets by IDs
+ */
+export const useBulkDeleteWallets = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof bulkDeleteWallets>>,
+    TError,
+    { data: BodyType<WalletBulkDeleteRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof bulkDeleteWallets>>,
+  TError,
+  { data: BodyType<WalletBulkDeleteRequest> },
+  TContext
+> => {
+  return useMutation(getBulkDeleteWalletsMutationOptions(options));
+};
