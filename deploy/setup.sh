@@ -69,7 +69,7 @@ log "Dependencies dasar terinstall"
 # ─── Install Node.js 24 ───────────────────────────────────────────────────────
 info "Install Node.js 24..."
 if ! command -v node &>/dev/null || [[ "$(node -v)" != v24* ]]; then
-  curl -fsSL https://deb.nodesource.com/setup_24.x | bash - -qq
+  curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
   apt-get install -y -qq nodejs
 fi
 log "Node.js $(node -v) terinstall"
