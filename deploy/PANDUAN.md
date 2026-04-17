@@ -14,11 +14,12 @@ Sebelum mulai, pastikan kamu punya:
 Di Replit, buka Shell dan jalankan:
 
 ```bash
-git remote add origin https://github.com/USERNAME/NAMA-REPO.git
+git remote add origin https://github.com/mrfunntastiic/NAMA-REPO.git
 git push -u origin main
 ```
 
-> Jika belum punya repo GitHub, buat dulu di [github.com/new](https://github.com/new)
+> Jika belum punya repo GitHub, buat dulu di [github.com/new](https://github.com/new)  
+> Ganti `NAMA-REPO` dengan nama repo yang kamu buat.
 
 ---
 
@@ -34,7 +35,7 @@ ssh root@IP_VPS_KAMU
 
 ```bash
 # Download script setup
-curl -fsSL https://raw.githubusercontent.com/USERNAME/NAMA-REPO/main/deploy/setup.sh -o setup.sh
+curl -fsSL https://raw.githubusercontent.com/mrfunntastiic/NAMA-REPO/main/deploy/setup.sh -o setup.sh
 
 # Beri izin eksekusi
 chmod +x setup.sh
