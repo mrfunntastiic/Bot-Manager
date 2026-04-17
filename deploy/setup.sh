@@ -66,10 +66,10 @@ info "Install curl, git, unzip, build-essential..."
 apt-get install -y -qq curl git unzip build-essential nginx certbot python3-certbot-nginx
 log "Dependencies dasar terinstall"
 
-# ─── Install Node.js 20 LTS ───────────────────────────────────────────────────
-info "Install Node.js 20 LTS..."
-if ! command -v node &>/dev/null || [[ "$(node -v)" != v20* ]]; then
-  curl -fsSL https://deb.nodesource.com/setup_20.x | bash - -qq
+# ─── Install Node.js 24 ───────────────────────────────────────────────────────
+info "Install Node.js 24..."
+if ! command -v node &>/dev/null || [[ "$(node -v)" != v24* ]]; then
+  curl -fsSL https://deb.nodesource.com/setup_24.x | bash - -qq
   apt-get install -y -qq nodejs
 fi
 log "Node.js $(node -v) terinstall"

@@ -151,7 +151,7 @@ cat /opt/ultiland-bot/.env
 ### Build gagal
 ```bash
 # Pastikan versi Node.js benar
-node -v   # harus v20.x
+node -v   # harus v24.x
 
 # Coba install ulang dependencies
 cd /opt/ultiland-bot
