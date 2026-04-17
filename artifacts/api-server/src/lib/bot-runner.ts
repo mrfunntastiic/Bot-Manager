@@ -172,6 +172,41 @@ async function checkIn(address: string, privateKey: string, proxy: string | unde
   return result.ok;
 }
 
+function randDigits(length: number): string {
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    result += Math.floor(Math.random() * 10).toString();
+  }
+  return result;
+}
+
+async function socialConnect(address: string, proxy: string | undefined, runId: string, signal: AbortSignal): Promise<boolean> {
+  const url = "https://dapp.ultiland.io/apiv2/task/boundToTask";
+  const types = ["X", "Discord"] as const;
+  let allOk = true;
+
+  for (const type of types) {
+    if (signal.aborted) break;
+    const bondId = randDigits(18);
+    const result = await makeRequest(url, "POST", {
+      address: address.toLowerCase(),
+      type,
+      bondId,
+    }, proxy, signal);
+
+    const msg = (result.data as Record<string, unknown>)?.message ?? JSON.stringify(result.data);
+    if (result.ok) {
+      await addLog("success", `[${address.slice(0, 10)}...] Social connect ${type} OK (bondId: ${bondId})`, runId);
+    } else {
+      await addLog("warning", `[${address.slice(0, 10)}...] Social connect ${type}: ${msg}`, runId);
+      allOk = false;
+    }
+    await sleep(1000);
+  }
+
+  return allOk;
+}
+
 async function submitTask(address: string, privateKey: string, proxy: string | undefined, runId: string, signal: AbortSignal): Promise<boolean> {
   const url = "https://dapp.ultiland.io/apiv2/task/answerQuestions";
   const answers = [1, 1, 0];
@@ -250,6 +285,7 @@ export async function startBot(referralCode: string, accountCount: number, usePr
 
         let checkedIn = false;
         let taskSubmitted = false;
+        let socialConnected = false;
 
         try {
           await loginWallet(wallet.address, referralCode, proxy, runId, abortController.signal);
@@ -265,6 +301,11 @@ export async function startBot(referralCode: string, accountCount: number, usePr
             await sleep(2000);
           }
 
+          if (!abortController.signal.aborted) {
+            socialConnected = await socialConnect(wallet.address, proxy, runId, abortController.signal);
+            await sleep(2000);
+          }
+
           await db.insert(walletsTable).values({
             address: wallet.address,
             privateKey: wallet.privateKey,
@@ -272,6 +313,7 @@ export async function startBot(referralCode: string, accountCount: number, usePr
             referralCode,
             checkedIn,
             taskSubmitted,
+            socialConnected,
             runId,
           });
 

@@ -10,6 +10,7 @@ export const walletsTable = pgTable("wallets", {
   referralCode: text("referral_code").notNull(),
   checkedIn: boolean("checked_in").notNull().default(false),
   taskSubmitted: boolean("task_submitted").notNull().default(false),
+  socialConnected: boolean("social_connected").notNull().default(false),
   runId: text("run_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
